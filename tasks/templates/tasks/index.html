@@ -12,4 +12,9 @@
     <li>Список задач по категориям пуст. Попробуйте добавить их из админки</li>
   {% endfor %}
   </ul>
+    <ul>
+    {% for cat, count in c.items %}
+        <li><span class="badge badge-info">{{ cat }}: {{ count }}</span></li>
+    {% endfor %}
+    </ul>
 {% endblock %}
