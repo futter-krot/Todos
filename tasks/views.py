@@ -4,6 +4,7 @@ from django.views.generic.detail import DetailView
 from tasks.models import *
 from datetime import datetime
 from django.views.decorators.cache import cache_page
+from django.db import IntegrityError
 
 def index(request):
 
@@ -87,6 +88,45 @@ class TaskListView(ListView):
 class TaskDetailsView(DetailView):
     model = TodoItem
     template_name = "tasks/details.html"
+
+
+def delete_queryset(request, queryset):
+    # if TodoItem.category.through.objects.all().values()[0]['category_id'] == TodoItem.category.through.objects.all().values()[-1]['category_id']:
+    # idle = TodoItem.category.through.objects.all().values()[0]['category_id']
+    # c = 0
+    # for i in TodoItem.category.through.objects.all().values():
+    #     if i['category_id'] == idle:
+    #         c += 1
+    if len(queryset.values()) == 1:
+        todos = Category.objects.filter(id=TodoItem.category.through.objects.all().values()[0]['category_id']).values()[0]['todos_count'] - len(queryset.values())
+        try:
+            if Category.objects.filter(id=TodoItem.category.through.objects.all().values()[1]['category_id']).exists():
+                Category.objects.filter(id=Category.objects.filter(
+                    id=TodoItem.category.through.objects.all().values()[1]['category_id']).values()[0]['id']).update(
+                    todos_count=todos)
+        except IndexError:
+            pass
+        try:
+            Category.objects.filter(id=Category.objects.filter(id=TodoItem.category.through.objects.all().values()[0]['category_id']).values()[0]['id']).update(todos_count=todos)
+        except IntegrityError:
+            pass
+    else:
+        idle = TodoItem.category.through.objects.all().values()[0]['category_id']
+        x = 0
+        oid = 0
+        for i in TodoItem.category.through.objects.all().values():
+            if i['category_id'] == idle:
+                x += 1
+            else:
+                oid = i['category_id']
+        extodos = Category.objects.filter(id=TodoItem.category.through.objects.all().values()[0]['category_id']).values()[0]['todos_count'] - x
+        y = len(queryset.values()) - x
+        eytodos = Category.objects.filter(id=TodoItem.category.through.objects.all().values()[0]['category_id']).values()[0]['todos_count'] - y
+        definition = x-y-eytodos
+        Category.objects.filter(id=Category.objects.filter(id=idle).values()[0]['id']).update(todos_count=definition)
+        Category.objects.filter(id=Category.objects.filter(id=oid).values()[0]['id']).update(todos_count=extodos)
+    TodoItem.category.through.objects.all().delete()
+    queryset.delete()
 
 
 @cache_page(60 * 5)
