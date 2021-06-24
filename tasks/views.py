@@ -90,7 +90,7 @@ class TaskDetailsView(DetailView):
     template_name = "tasks/details.html"
 
 
-def delete_queryset(request, queryset):
+def delete_queryset(self, request, queryset):
     # if TodoItem.category.through.objects.all().values()[0]['category_id'] == TodoItem.category.through.objects.all().values()[-1]['category_id']:
     # idle = TodoItem.category.through.objects.all().values()[0]['category_id']
     # c = 0
@@ -98,8 +98,8 @@ def delete_queryset(request, queryset):
     #     if i['category_id'] == idle:
     #         c += 1
     if len(queryset.values()) == 1:
-        todos = Category.objects.filter(id=TodoItem.category.through.objects.all().values()[0]['category_id']).values()[0]['todos_count'] - len(queryset.values())
         try:
+            todos = Category.objects.filter(id=TodoItem.category.through.objects.all().values()[0]['category_id']).values()[0]['todos_count'] - len(queryset.values())
             if Category.objects.filter(id=TodoItem.category.through.objects.all().values()[1]['category_id']).exists():
                 Category.objects.filter(id=Category.objects.filter(
                     id=TodoItem.category.through.objects.all().values()[1]['category_id']).values()[0]['id']).update(
